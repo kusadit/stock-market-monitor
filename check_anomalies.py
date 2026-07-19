@@ -1,5 +1,7 @@
 import sqlite3
 
+from logger_config import logger
+
 DB_PATH = "database/market_data.db"
 
 # Trigger an alert if price changes by 5% or more
@@ -7,11 +9,12 @@ THRESHOLD_PERCENT = 5.0
 
 
 def check_price_spikes():
-    # Connect to the database
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Get all unique tickers
+    logger.info("========== Anomaly Detection Started ==========")
+
     tickers = cursor.execute(
         """
         SELECT DISTINCT ticker
@@ -19,10 +22,8 @@ def check_price_spikes():
         """
     ).fetchall()
 
-    # Check each ticker individually
     for (ticker,) in tickers:
 
-        # Get the latest two prices
         rows = cursor.execute(
             """
             SELECT price, fetched_at
@@ -34,25 +35,21 @@ def check_price_spikes():
             (ticker,)
         ).fetchall()
 
-        # Skip if there are fewer than 2 records
         if len(rows) < 2:
-            print(f"Not enough data for {ticker}")
+            logger.warning(f"Not enough data to compare prices for {ticker}")
             continue
 
         latest_price = rows[0][0]
         previous_price = rows[1][0]
 
-        # Calculate percentage change
         change_percent = abs(
             (latest_price - previous_price) / previous_price
         ) * 100
 
-        print(f"\nTicker: {ticker}")
-        print(f"Previous Price: {previous_price}")
-        print(f"Latest Price: {latest_price}")
-        print(f"Change: {change_percent:.2f}%")
+        logger.info(
+            f"{ticker} | Previous: {previous_price} | Latest: {latest_price} | Change: {change_percent:.2f}%"
+        )
 
-        # Check if change exceeds threshold
         if change_percent >= THRESHOLD_PERCENT:
 
             cursor.execute(
@@ -69,13 +66,14 @@ def check_price_spikes():
 
             conn.commit()
 
-            print("ALERT GENERATED!")
+            logger.warning(
+                f"PRICE SPIKE detected for {ticker} ({change_percent:.2f}%)"
+            )
 
     conn.close()
+
+    logger.info("========== Anomaly Detection Completed ==========")
 
 
 if __name__ == "__main__":
     check_price_spikes()
-
-#updated
-

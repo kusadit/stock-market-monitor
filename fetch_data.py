@@ -1,6 +1,8 @@
 import sqlite3
 import yfinance as yf
 
+from logger_config import logger
+
 # Database path
 DB_PATH = "database/market_data.db"
 
@@ -44,30 +46,26 @@ def fetch_and_store(ticker, conn):
     """
 
     try:
-        print(f"\nFetching data for {ticker}...")
+        logger.info(f"Fetching data for {ticker}")
 
-        # Create stock object
         stock = yf.Ticker(ticker)
 
-        # Fetch today's data
         data = stock.history(period="1d")
 
-        # Check if data exists
         if data.empty:
+            logger.warning(f"No data found for {ticker}")
+
             log_alert(
                 conn,
                 ticker,
                 "MISSING_DATA",
                 "No data returned from Yahoo Finance"
             )
-            print("No data found.")
             return
 
-        # Extract required fields
         price = float(data["Close"].iloc[-1])
         volume = int(data["Volume"].iloc[-1])
 
-        # Insert into database
         cursor = conn.cursor()
 
         cursor.execute(
@@ -80,11 +78,14 @@ def fetch_and_store(ticker, conn):
 
         conn.commit()
 
-        print(f"Price : {price}")
-        print(f"Volume: {volume}")
-        print("Data saved successfully!")
+        logger.info(
+            f"{ticker} | Price: {price} | Volume: {volume} | Saved Successfully"
+        )
 
     except Exception as e:
+
+        logger.error(f"Error fetching {ticker}: {e}")
+
         log_alert(
             conn,
             ticker,
@@ -92,10 +93,10 @@ def fetch_and_store(ticker, conn):
             str(e)
         )
 
-        print(f"Error fetching {ticker}: {e}")
-
 
 if __name__ == "__main__":
+
+    logger.info("========== Fetch Data Pipeline Started ==========")
 
     connection = get_connection()
 
@@ -104,4 +105,4 @@ if __name__ == "__main__":
 
     connection.close()
 
-    print("\nPipeline completed successfully!")
+    logger.info("========== Fetch Data Pipeline Completed ==========")
