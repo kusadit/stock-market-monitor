@@ -1,15 +1,25 @@
-# Virtual Environment
-venv/
-
 # Python cache
 __pycache__/
 *.pyc
 
-# VS Code settings
-.vscode/
+# Virtual environment
+venv/
+.venv/
 
 # Log files
 logs/
+*.log
 
-# Database (optional for now)
+# Excel reports
+reports/
+*.xlsx
+
+# SQLite database (recommended for production)
 # database/market_data.db
+
+# VS Code settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
