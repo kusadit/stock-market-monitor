@@ -24,3 +24,12 @@ jobs:
 
       - name: Check Anomalies
         run: python check_anomalies.py
+
+      - name: Generate Excel Report
+        run: python report_generator.py
+
+      - name: Upload Excel Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-stock-report
+          path: reports/daily_stock_report.xlsx
