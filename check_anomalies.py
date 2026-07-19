@@ -76,3 +76,6 @@ def check_price_spikes():
 
 if __name__ == "__main__":
     check_price_spikes()
+
+#updated
+
